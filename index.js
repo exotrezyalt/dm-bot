@@ -7,7 +7,10 @@ app.use(express.json());
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // you make this up, any string
 
-const MESSAGE = "Hey! Thanks for following — really appreciate the support! 🙌";
+const MESSAGES = {
+  follow: "Hey! Thanks so much for following — really appreciate the support! Feel free to reach out anytime 🙌",
+  message: "Hey! Thanks for reaching out to us — we'll get back to you as soon as possible! 😊"
+};
 
 // Facebook webhook verification (one-time setup)
 app.get('/webhook', (req, res) => {
@@ -34,14 +37,17 @@ app.post('/webhook', async (req, res) => {
       for (const event of entry.messaging || []) {
         console.log('Event:', JSON.stringify(event, null, 2));
 
-        if (event.postback || event.follow) {
+
+        if (event.follow) {
           const senderId = event.sender.id;
-          await sendMessage(senderId);
+          await sendMessage(senderId, MESSAGES.follow);
         }
 
+        // Someone messaged your page
         if (event.message && !event.message.is_echo) {
           const senderId = event.sender.id;
-          await sendMessage(senderId);
+          await sendMessage(senderId, MESSAGES.message);
+        }
         }
       }
     }
@@ -51,16 +57,16 @@ app.post('/webhook', async (req, res) => {
   }
 });
 
-async function sendMessage(recipientId) {
+async function sendMessage(recipientId, text) {
   try {
     await axios.post(
       `https://graph.facebook.com/v19.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`,
       {
         recipient: { id: recipientId },
-        message: { text: MESSAGE }
+        message: { text }
       }
     );
-    console.log(`DM sent to ${recipientId}`);
+    console.log(`DM sent to ${recipientId}: "${text}"`);
   } catch (err) {
     console.error('Failed to send DM:', err.response?.data || err.message);
   }
