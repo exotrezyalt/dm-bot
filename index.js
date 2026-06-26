@@ -5,14 +5,13 @@ const app = express();
 app.use(express.json());
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // you make this up, any string
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN;
 
 const MESSAGES = {
   follow: "Hey! Thanks so much for following — really appreciate the support! Feel free to reach out anytime 🙌",
   message: "Hey! Thanks for reaching out to us — we'll get back to you as soon as possible! 😊"
 };
 
-// Facebook webhook verification (one-time setup)
 app.get('/webhook', (req, res) => {
   if (
     req.query['hub.mode'] === 'subscribe' &&
@@ -24,31 +23,23 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-// Receive webhook events
 app.post('/webhook', async (req, res) => {
   console.log('Webhook received:', JSON.stringify(req.body, null, 2));
-  
+
   const body = req.body;
 
   if (body.object === 'page') {
     for (const entry of body.entry) {
-      console.log('Entry:', JSON.stringify(entry, null, 2));
-      
       for (const event of entry.messaging || []) {
-        console.log('Event:', JSON.stringify(event, null, 2));
-
 
         if (event.follow) {
-          const senderId = event.sender.id;
-          await sendMessage(senderId, MESSAGES.follow);
+          await sendMessage(event.sender.id, MESSAGES.follow);
         }
 
-        // Someone messaged your page
         if (event.message && !event.message.is_echo) {
-          const senderId = event.sender.id;
-          await sendMessage(senderId, MESSAGES.message);
+          await sendMessage(event.sender.id, MESSAGES.message);
         }
-        }
+
       }
     }
     res.sendStatus(200);
