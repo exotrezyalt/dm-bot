@@ -5,11 +5,11 @@ const app = express();
 app.use(express.json());
 
 const PAGE_ACCESS_TOKEN = process.env.PAGE_ACCESS_TOKEN;
-const VERIFY_TOKEN = process.env.VERIFY_TOKEN; // you make this up, any string
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN; 
 
 const MESSAGE = "Hey! Thanks for following — really appreciate the support! 🙌";
 
-// Facebook webhook verification (one-time setup)
+// webhook verification
 app.get('/webhook', (req, res) => {
   if (
     req.query['hub.mode'] === 'subscribe' &&
@@ -21,7 +21,7 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-// Receive webhook events
+// receive webhook events
 app.post('/webhook', async (req, res) => {
   console.log('Webhook received:', JSON.stringify(req.body, null, 2));
   
